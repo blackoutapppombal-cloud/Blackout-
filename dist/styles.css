@@ -11,3 +11,9 @@
 .hotspot-consoles{left:41.6882%;top:76.8266%;width:16.7097%;height:15.7934%}
 .hotspot-services{left:60.2067%;top:76.8266%;width:16.9681%;height:15.7934%}
 .hotspot-offers{left:78.9836%;top:76.8266%;width:16.882%;height:15.7934%}
+
+.location-showcase{position:relative;overflow:hidden;border-radius:22px;background:#05080c}
+.location-showcase>img{display:block;width:100%;height:auto}
+.location-whatsapp{position:absolute;left:54.1%;top:60.3%;width:41.1%;height:10.2%;border:2px solid transparent;border-radius:22px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.location-whatsapp:hover,.location-whatsapp:focus-visible{border-color:#85ffad;box-shadow:0 0 24px rgba(0,255,107,.75),inset 0 0 18px rgba(0,255,107,.08);outline:0}
+.location-whatsapp:active{transform:scale(.985);background:rgba(0,255,107,.08)}
