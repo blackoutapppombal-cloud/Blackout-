@@ -22,5 +22,5 @@
 .product-visual.has-image img{display:block;width:100%;height:100%;object-fit:contain}
 .detail-art.has-image{background:#fff;overflow:hidden;padding:0}
 .detail-art.has-image img{display:block;width:100%;height:100%;object-fit:contain}
-.location-map{position:absolute;left:3.2%;top:34.7%;width:47.5%;height:20.5%;z-index:4;border-radius:14px;cursor:pointer;outline:none}
-.location-map:hover,.location-map:focus-visible{box-shadow:0 0 0 2px #ff641e,0 0 22px rgba(255,100,30,.7);background:rgba(255,100,30,.06)}
+.location-map{position:absolute;left:5.1%;top:34.7%;width:41.5%;height:13.2%;z-index:4;border-radius:10px;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
+.location-map:focus-visible{outline:2px solid #ff641e;outline-offset:-3px}
