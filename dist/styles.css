@@ -22,5 +22,8 @@
 .product-visual.has-image img{display:block;width:100%;height:100%;object-fit:contain}
 .detail-art.has-image{background:#fff;overflow:hidden;padding:0}
 .detail-art.has-image img{display:block;width:100%;height:100%;object-fit:contain}
-.location-map{position:absolute;left:5.1%;top:34.7%;width:41.5%;height:13.2%;z-index:4;border-radius:10px;cursor:pointer;outline:none;-webkit-tap-highlight-color:transparent}
-.location-map:focus-visible{outline:2px solid #ff641e;outline-offset:-3px}
+.location-map{position:absolute;left:5.1%;top:34.7%;width:41.5%;height:13.2%;z-index:4;border:1px solid rgba(255,111,26,.4);border-radius:10px;cursor:pointer;outline:none;background:linear-gradient(115deg,rgba(255,110,20,.05),transparent 48%,rgba(255,145,55,.04));box-shadow:0 0 10px rgba(255,85,0,.22),inset 0 0 12px rgba(255,105,20,.08);transition:border-color .2s,box-shadow .2s,background .2s,transform .15s;-webkit-tap-highlight-color:transparent;animation:locationGlow 3.2s ease-in-out infinite}
+.location-map:hover,.location-map:focus-visible{border-color:rgba(255,145,60,.95);background:linear-gradient(115deg,rgba(255,110,20,.1),transparent 48%,rgba(255,160,70,.08));box-shadow:0 0 8px #ff8a2f,0 0 22px rgba(255,85,0,.58),inset 0 0 16px rgba(255,130,35,.13)}
+.location-map:active{transform:scale(.985)}
+@keyframes locationGlow{0%,100%{box-shadow:0 0 8px rgba(255,85,0,.18),inset 0 0 10px rgba(255,105,20,.06)}50%{box-shadow:0 0 14px rgba(255,105,20,.36),inset 0 0 14px rgba(255,125,30,.1)}}
+@media(prefers-reduced-motion:reduce){.location-map{animation:none}}
