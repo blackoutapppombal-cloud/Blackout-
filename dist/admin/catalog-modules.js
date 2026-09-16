@@ -4,7 +4,9 @@
     categories: [],
     search: '',
     category: 'all',
-    status: 'all'
+    status: 'all',
+    stockSearch: '',
+    stockFilter: 'all'
   };
 
   const api = () => window.BLACKOUT_ADMIN;
@@ -266,5 +268,57 @@
     catch (error) { moduleError('ATIVE O MÓDULO DE CATEGORIAS', error.status===404?'Execute o arquivo admin-003-catalog-management.sql no Supabase para liberar esta tela.':'Não foi possível carregar as categorias.', () => loadCategories(true)); }
   }
 
-  window.BLACKOUT_ADMIN_CATALOG = {loadProducts, loadCategories};
+  function filteredStock() {
+    const needle = state.stockSearch.trim().toLocaleLowerCase('pt-BR');
+    return state.products.filter(product => {
+      const stock = Number(product.stock || 0); const minimum = Number(product.stock_min || 0);
+      const matchesSearch = !needle || [product.name, product.category, product.brand].some(value => String(value || '').toLocaleLowerCase('pt-BR').includes(needle));
+      const matchesFilter = state.stockFilter === 'all' || (state.stockFilter === 'out' && stock === 0) || (state.stockFilter === 'low' && stock > 0 && stock <= minimum) || (state.stockFilter === 'healthy' && stock > minimum);
+      return matchesSearch && matchesFilter;
+    });
+  }
+
+  function renderStock() {
+    const products = filteredStock();
+    const totalUnits = state.products.reduce((sum, product) => sum + Number(product.stock || 0), 0);
+    const out = state.products.filter(product => Number(product.stock || 0) === 0).length;
+    const low = state.products.filter(product => Number(product.stock || 0) > 0 && Number(product.stock || 0) <= Number(product.stock_min || 0)).length;
+    const healthy = state.products.filter(product => Number(product.stock || 0) > Number(product.stock_min || 0)).length;
+    content().innerHTML = `
+      <div class="module-head"><div><span class="module-kicker">OPERAÇÃO</span><h2>Estoque</h2><p>Acompanhe disponibilidade e ajuste os níveis sem sair da listagem.</p></div><button class="secondary-action" id="stock-products">Gerenciar produtos</button></div>
+      <div class="catalog-stats"><article class="catalog-stat"><small>UNIDADES</small><strong>${totalUnits}</strong><span>em todos os produtos</span></article><article class="catalog-stat ${out?'danger':''}"><small>SEM ESTOQUE</small><strong>${out}</strong><span>exigem reposição</span></article><article class="catalog-stat ${low?'warning':''}"><small>ESTOQUE BAIXO</small><strong>${low}</strong><span>no nível mínimo</span></article><article class="catalog-stat"><small>SAUDÁVEL</small><strong>${healthy}</strong><span>acima do mínimo</span></article></div>
+      <section class="admin-card catalog-panel">
+        <div class="catalog-toolbar stock-toolbar"><label class="search-control"><span>⌕</span><input id="stock-search" type="search" placeholder="Buscar produto ou categoria" value="${escapeHtml(state.stockSearch)}"></label><select id="stock-filter" aria-label="Filtrar situação do estoque"><option value="all" ${state.stockFilter==='all'?'selected':''}>Todas as situações</option><option value="out" ${state.stockFilter==='out'?'selected':''}>Sem estoque</option><option value="low" ${state.stockFilter==='low'?'selected':''}>Estoque baixo</option><option value="healthy" ${state.stockFilter==='healthy'?'selected':''}>Estoque saudável</option></select><span class="result-count">${products.length} produto${products.length===1?'':'s'}</span></div>
+        ${products.length ? `<div class="catalog-table-wrap"><table class="catalog-table stock-table"><thead><tr><th>Produto</th><th>Situação</th><th>Atual</th><th>Mínimo</th><th>Ajuste rápido</th></tr></thead><tbody>${products.map(product => { const [tone,label]=stockState(product); return `<tr data-stock-row="${product.id}"><td><div class="product-cell"><div class="catalog-thumb">${productImage(product)}</div><div><strong>${escapeHtml(product.name)}</strong><small>${escapeHtml(product.category)} • ${escapeHtml(product.brand||'Sem marca')}</small></div></div></td><td><span class="inventory-pill ${tone}">${label}</span></td><td><input class="stock-number" data-stock-value type="number" min="0" step="1" value="${Number(product.stock||0)}" aria-label="Estoque atual de ${escapeHtml(product.name)}"></td><td><input class="stock-number" data-stock-min type="number" min="0" step="1" value="${Number(product.stock_min||0)}" aria-label="Estoque mínimo de ${escapeHtml(product.name)}"></td><td><div class="stock-actions"><button data-stock-delta="-1" title="Retirar uma unidade">−</button><button data-stock-delta="1" title="Adicionar uma unidade">＋</button><button class="table-action save-stock" data-stock-save>Salvar</button></div></td></tr>`; }).join('')}</tbody></table></div>` : '<div class="empty-state rich-empty"><span>▤</span><strong>Nenhum produto nesta situação</strong><p>Altere o filtro para visualizar os demais itens.</p></div>'}
+      </section>`;
+    bindStock();
+  }
+
+  function bindStock() {
+    document.querySelector('#stock-products').onclick = () => api().selectView('products');
+    document.querySelector('#stock-search').oninput = event => { state.stockSearch=event.target.value; renderStock(); document.querySelector('#stock-search')?.focus(); };
+    document.querySelector('#stock-filter').onchange = event => { state.stockFilter=event.target.value; renderStock(); };
+    document.querySelectorAll('[data-stock-row]').forEach(row => {
+      const stockInput=row.querySelector('[data-stock-value]');
+      row.querySelectorAll('[data-stock-delta]').forEach(button => button.onclick=()=>{stockInput.value=Math.max(0,Number(stockInput.value||0)+Number(button.dataset.stockDelta));stockInput.classList.add('changed')});
+      row.querySelector('[data-stock-save]').onclick=()=>saveStockRow(row);
+      row.querySelectorAll('.stock-number').forEach(input=>input.oninput=()=>input.classList.add('changed'));
+    });
+  }
+
+  async function saveStockRow(row) {
+    const id=Number(row.dataset.stockRow); const product=state.products.find(item=>Number(item.id)===id); if(!product)return;
+    const stock=Math.max(0,Number(row.querySelector('[data-stock-value]').value||0)); const stockMin=Math.max(0,Number(row.querySelector('[data-stock-min]').value||0)); const button=row.querySelector('[data-stock-save]');
+    button.disabled=true; button.textContent='Salvando…';
+    try { await api().request(`/rest/v1/products?id=eq.${id}`,{method:'PATCH',body:{stock,stock_min:stockMin},headers:{Prefer:'return=minimal'}}); product.stock=stock; product.stock_min=stockMin; renderStock(); api().toast(`Estoque de ${product.name} atualizado`); }
+    catch { button.disabled=false; button.textContent='Salvar'; api().toast('Não foi possível atualizar o estoque'); }
+  }
+
+  async function loadStock(force = false) {
+    content().innerHTML=moduleSkeleton('ESTOQUE');
+    try { await fetchProducts(); renderStock(); if(force)api().toast('Estoque atualizado'); }
+    catch { moduleError('ESTOQUE INDISPONÍVEL','Não foi possível carregar os níveis de estoque.',()=>loadStock(true)); }
+  }
+
+  window.BLACKOUT_ADMIN_CATALOG = {loadProducts, loadCategories, loadStock};
 })();
