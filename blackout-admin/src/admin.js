@@ -3,6 +3,7 @@
   const root = document.querySelector("#admin-root");
   const toastNode = document.querySelector("#admin-toast");
   const SESSION_KEY = "blackout-admin-session";
+  const REMEMBERED_EMAIL_KEY = "blackout-admin-remembered-email";
   const modules = [
     ["dashboard", "⌂", "Dashboard"],
     ["products", "▦", "Produtos"],
@@ -223,13 +224,48 @@
   }
   function renderLogin(message = "") {
     setPath("/login");
-    root.innerHTML = `<section class="login-page"><div class="login-brand"><div class="brand-lockup"><span class="brand-title">BLACKOUT</span><span class="brand-sub">INFOR GAMES</span></div><div class="login-brand-copy"><span>Gestão segura</span><h1>CONTROLE TOTAL DA OPERAÇÃO</h1><p>Produtos, pedidos e estoque em uma área administrativa separada da experiência dos clientes.</p></div><div class="login-security">Acesso protegido pelo Supabase Auth e pelas políticas de segurança do banco.</div></div><div class="login-panel"><form id="login-form" class="login-card"><span class="eyebrow">Área administrativa</span><h2>ENTRAR NO PAINEL</h2><p>Use o e-mail autorizado para administrar a BLACKOUT.</p><div class="field"><label for="admin-email">E-mail</label><input id="admin-email" name="email" type="email" autocomplete="username" required></div><div class="field"><label for="admin-password">Senha</label><input id="admin-password" name="password" type="password" autocomplete="current-password" minlength="6" required></div><button class="admin-primary" type="submit">Entrar</button><button class="admin-link" id="recover-password" type="button">Recuperar senha</button><div id="login-error" class="form-error ${message ? "show" : ""}">${escapeHtml(message)}</div></form></div></section>`;
+    const rememberedEmail = localStorage.getItem(REMEMBERED_EMAIL_KEY) || "";
+    root.innerHTML = `<section class="login-page login-reference-page">
+      <div class="login-brand" aria-hidden="true"></div>
+      <div class="login-panel">
+        <form id="login-form" class="login-card login-reference-card">
+          <span class="eyebrow">ÁREA ADMINISTRATIVA</span>
+          <h2>ENTRAR NO <em>PAINEL</em></h2>
+          <p>Use suas credenciais autorizadas para gerenciar a BLACKOUT INFOR GAMES.</p>
+          <label class="login-control" for="admin-email">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"></rect><path d="m4 7 8 6 8-6"></path></svg>
+            <input id="admin-email" name="email" type="email" autocomplete="username" placeholder="E-mail" value="${escapeHtml(rememberedEmail)}" required>
+          </label>
+          <label class="login-control" for="admin-password">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path></svg>
+            <input id="admin-password" name="password" type="password" autocomplete="current-password" placeholder="Senha" minlength="6" required>
+            <button id="toggle-password" class="password-toggle" type="button" aria-label="Mostrar senha" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12s3.3-5 9-5 9 5 9 5-3.3 5-9 5-9-5-9-5Z"></path><circle cx="12" cy="12" r="2.5"></circle><path class="password-slash" d="m4 4 16 16"></path></svg></button>
+          </label>
+          <div class="login-options">
+            <label class="remember-option"><input name="remember" type="checkbox" checked><span aria-hidden="true"></span><em>Lembrar de mim</em></label>
+            <button class="admin-link" id="recover-password" type="button">Esqueceu a senha?</button>
+          </div>
+          <button class="admin-primary login-submit" type="submit"><span>→</span><b>Entrar</b></button>
+          <div id="login-error" class="form-error ${message ? "show" : ""}">${escapeHtml(message)}</div>
+          <div class="login-platforms" aria-label="Plataformas atendidas"><span>PlayStation</span><span>Nintendo</span><span>Xbox</span><span>PC GAMER</span></div>
+          <div class="login-card-footer"><span>BLACKOUT INFOR GAMES</span><small>TUDO PARA O SEU MUNDO GAMER</small></div>
+        </form>
+      </div>
+    </section>`;
     document
       .querySelector("#login-form")
       .addEventListener("submit", handleLogin);
     document
       .querySelector("#recover-password")
       .addEventListener("click", handleRecovery);
+    document.querySelector("#toggle-password").addEventListener("click", (event) => {
+      const toggle = event.currentTarget;
+      const password = document.querySelector("#admin-password");
+      const visible = password.type === "text";
+      password.type = visible ? "password" : "text";
+      toggle.setAttribute("aria-pressed", String(!visible));
+      toggle.setAttribute("aria-label", visible ? "Mostrar senha" : "Ocultar senha");
+    });
   }
 
   async function handleLogin(event) {
@@ -238,7 +274,7 @@
     const button = form.querySelector(".admin-primary");
     const errorNode = form.querySelector("#login-error");
     button.disabled = true;
-    button.textContent = "Entrando…";
+    button.innerHTML = "<span>↻</span><b>Entrando…</b>";
     errorNode.classList.remove("show");
     try {
       const data = await request("/auth/v1/token?grant_type=password", {
@@ -254,6 +290,9 @@
         renderUnauthorized();
         return;
       }
+      if (form.remember?.checked)
+        localStorage.setItem(REMEMBERED_EMAIL_KEY, form.email.value.trim());
+      else localStorage.removeItem(REMEMBERED_EMAIL_KEY);
       renderShell();
       selectView(requestedView, { replace: true });
       toast("Acesso autorizado");
@@ -264,7 +303,7 @@
           : "Não foi possível entrar. Tente novamente.";
       errorNode.classList.add("show");
       button.disabled = false;
-      button.textContent = "Entrar";
+      button.innerHTML = "<span>→</span><b>Entrar</b>";
     }
   }
   async function handleRecovery() {
