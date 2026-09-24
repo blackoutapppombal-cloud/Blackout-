@@ -17,7 +17,8 @@
     if (!value) return '';
     const url = String(value);
     if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    return `../${url.replace(/^\.\//, '')}`;
+    const base = String(window.BLACKOUT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    return base ? `${base}/${url.replace(/^\.\//, '')}` : `/${url.replace(/^\.\//, '')}`;
   };
   const slugify = value => String(value || '')
     .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -67,6 +68,7 @@
     const stock = Number(product.stock || 0);
     const minimum = Number(product.stock_min || 0);
     if (stock === 0) return ['critical', 'Sem estoque'];
+    if (stock === 1) return ['warning', 'Última unidade'];
     if (stock <= minimum) return ['warning', 'Estoque baixo'];
     return ['healthy', 'Em estoque'];
   }
@@ -74,9 +76,19 @@
   function filteredProducts() {
     const needle = state.search.trim().toLocaleLowerCase('pt-BR');
     return state.products.filter(product => {
-      const matchesSearch = !needle || [product.name, product.brand, product.platform, product.category].some(value => String(value || '').toLocaleLowerCase('pt-BR').includes(needle));
+      const matchesSearch = !needle || [product.name, product.brand, product.platform, product.category, product.subcategory, product.sku, product.search_terms].some(value => String(value || '').toLocaleLowerCase('pt-BR').includes(needle));
       const matchesCategory = state.category === 'all' || product.category === state.category;
-      const matchesStatus = state.status === 'all' || (state.status === 'active' ? product.active : !product.active) || (state.status === 'low' && Number(product.stock) <= Number(product.stock_min));
+      const now = Date.now();
+      const offerActive = Number(product.discount) > 0 && (!product.promotion_starts_at || new Date(product.promotion_starts_at).getTime() <= now) && (!product.promotion_ends_at || new Date(product.promotion_ends_at).getTime() >= now);
+      const incomplete = !String(product.name || '').trim() || !String(product.category || '').trim() || Number(product.price) <= 0 || !String(product.description || '').trim();
+      const matchesStatus = state.status === 'all'
+        || (state.status === 'active' && product.active)
+        || (state.status === 'inactive' && !product.active)
+        || (state.status === 'offer' && offerActive)
+        || (state.status === 'out' && Number(product.stock) === 0)
+        || (state.status === 'low' && Number(product.stock) > 0 && Number(product.stock) <= Number(product.stock_min))
+        || (state.status === 'missing-image' && !String(product.image_url || '').trim())
+        || (state.status === 'incomplete' && incomplete);
       return matchesSearch && matchesCategory && matchesStatus;
     });
   }

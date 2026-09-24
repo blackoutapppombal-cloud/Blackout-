@@ -10,8 +10,10 @@ node_modules/
 
 # Android/Gradle generated files
 android/.gradle/
+android/.idea/
 android/**/build/
 android/local.properties
+supabase/.temp/
 
 # Logs and operating-system files
 *.log

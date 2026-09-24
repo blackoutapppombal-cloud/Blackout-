@@ -15,7 +15,8 @@
     if (!value) return '';
     const url = String(value);
     if (/^(https?:|data:|blob:)/i.test(url)) return url;
-    return `../${url.replace(/^\.\//, '')}`;
+    const base = String(window.BLACKOUT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+    return base ? `${base}/${url.replace(/^\.\//, '')}` : `/${url.replace(/^\.\//, '')}`;
   };
   const orderStatuses = [
     ['recebido','Recebido'],['aguardando_pagamento','Aguardando pagamento'],['pago','Pago'],
