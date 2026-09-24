@@ -197,7 +197,9 @@
       const imageFile = values.get('image_file');
       if (imageFile && imageFile.size) payload.image_url = await api().uploadImage(imageFile, 'products');
       const path = product ? `/rest/v1/products?id=eq.${product.id}` : '/rest/v1/products';
-      await api().request(path, {method:product?'PATCH':'POST', body:payload, headers:{Prefer:'return=minimal'}});
+      const saved = await api().request(path, {method:product?'PATCH':'POST', body:payload, headers:{Prefer:'return=representation'}});
+      const productId = product?.id || saved?.[0]?.id;
+      if (productId && window.BLACKOUT_ADMIN_FINAL?.syncProductImages) await window.BLACKOUT_ADMIN_FINAL.syncProductImages(productId, {primaryUrl:payload.image_url});
       close();
       await loadProducts(true);
       api().toast(product ? 'Produto atualizado' : 'Produto cadastrado');

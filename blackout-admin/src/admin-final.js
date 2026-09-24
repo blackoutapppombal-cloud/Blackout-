@@ -229,7 +229,7 @@
       const copy = {...source,name:`${source.name} (cópia)`,sku:null,active:false,publication_status:'draft'};
       ['id','created_at','updated_at'].forEach(key=>delete copy[key]);
       await api().request('/rest/v1/products',{method:'POST',body:copy,headers:{Prefer:'return=minimal'}});
-      await window.BLACKOUT_ADMIN_CATALOG.loadProducts(true);api().toast('Produto duplicado como rascunho');
+      api().selectView('products');api().toast('Produto duplicado como rascunho');
     } catch { api().toast('Não foi possível duplicar o produto'); }
   }
 
@@ -237,7 +237,7 @@
     const rows = await api().request(`/rest/v1/products?select=name&id=eq.${id}`).catch(()=>[]);
     const name = rows?.[0]?.name || 'este produto';
     if (!confirm(`Excluir “${name}”? Esta ação não pode ser desfeita.`)) return;
-    try { await api().request(`/rest/v1/products?id=eq.${id}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});await window.BLACKOUT_ADMIN_CATALOG.loadProducts(true);api().toast('Produto excluído'); }
+    try { await api().request(`/rest/v1/products?id=eq.${id}`,{method:'DELETE',headers:{Prefer:'return=minimal'}});api().selectView('products');api().toast('Produto excluído'); }
     catch { api().toast('Não foi possível excluir. Verifique pedidos ou relações vinculadas.'); }
   }
 
@@ -254,6 +254,71 @@
     input.addEventListener('change',()=>{const file=input.files?.[0];if(file)load(URL.createObjectURL(file),file)});
     workshop.querySelectorAll('[data-image-action]').forEach(button=>button.onclick=()=>{if(!state.image)return;const action=button.dataset.imageAction;if(action==='zoom-in')state.zoom=Math.min(3,state.zoom+.1);if(action==='zoom-out')state.zoom=Math.max(.5,state.zoom-.1);if(action==='up')state.y-=24;if(action==='down')state.y+=24;if(action==='left')state.x-=24;if(action==='right')state.x+=24;if(action==='center'){state.x=0;state.y=0;state.zoom=1}draw();optimize()});
     if (values.image_url) load(assetUrl(values.image_url));
+  }
+
+  async function productGallery(form, values = {}) {
+    if (form.dataset.galleryEnhanced) return;
+    form.dataset.galleryEnhanced = 'true';
+    let existing = [], available = true;
+    if (selectedProductId) {
+      try { existing = await api().request(`/rest/v1/product_images?select=*&product_id=eq.${selectedProductId}&order=sort_order.asc,id.asc`); }
+      catch { available = false; }
+    }
+    if (!Array.isArray(existing)) existing = [];
+    if (!existing.length && values.image_url) existing.push({id:null,image_url:values.image_url,is_primary:true,sort_order:0,legacy:true});
+    const state = {available,items:existing.map((item,index)=>({key:`existing-${item.id||index}`,id:item.id||null,url:item.image_url,file:null,primary:Boolean(item.is_primary)||index===0,removed:false,legacy:Boolean(item.legacy)})),removed:new Set()};
+    form.__productGallery = state;
+    const workshop=form.querySelector('.image-workshop');
+    if (!workshop) return;
+    workshop.insertAdjacentHTML('afterend', `<section class="product-gallery wide"><div class="product-gallery-head"><div><strong>Imagens do produto</strong><small>Escolha a principal, reordene ou remova miniaturas.</small></div><label>＋ Adicionar imagens<input type="file" data-gallery-files accept="image/jpeg,image/png,image/webp" multiple></label></div><div class="product-gallery-list" data-gallery-list></div>${available?'':'<p class="gallery-unavailable">A galeria múltipla será ativada após aplicar a migração final; a imagem principal continua funcionando.</p>'}</section>`);
+    const gallery=form.querySelector('.product-gallery'),list=gallery.querySelector('[data-gallery-list]'),input=gallery.querySelector('[data-gallery-files]');
+    const normalizePrimary=()=>{const visible=state.items.filter(item=>!item.removed);if(visible.length&&!visible.some(item=>item.primary))visible[0].primary=true;state.items.filter(item=>item.removed).forEach(item=>item.primary=false)};
+    const render=()=>{normalizePrimary();const visible=state.items.filter(item=>!item.removed);list.innerHTML=visible.length?visible.map((item,index)=>`<article data-gallery-key="${escapeHtml(item.key)}" class="${item.primary?'primary':''}"><div>${item.url?`<img src="${escapeHtml(item.url)}" alt="" loading="lazy">`:'<span>Imagem</span>'}</div><button type="button" data-gallery-primary title="Definir como principal">${item.primary?'Principal':'Tornar principal'}</button><span><button type="button" data-gallery-move="-1" ${index===0?'disabled':''}>←</button><button type="button" data-gallery-move="1" ${index===visible.length-1?'disabled':''}>→</button><button type="button" data-gallery-remove>×</button></span></article>`).join(''):'<div class="gallery-empty">Nenhuma imagem adicional. Use “Adicionar imagens”.</div>';bind()};
+    const bind=()=>{list.querySelectorAll('[data-gallery-key]').forEach(card=>{const item=state.items.find(entry=>entry.key===card.dataset.galleryKey);if(!item)return;card.querySelector('[data-gallery-primary]').onclick=()=>{state.items.forEach(entry=>entry.primary=entry===item);render()};card.querySelector('[data-gallery-remove]').onclick=()=>{item.removed=true;if(item.id)state.removed.add(item.id);render()};card.querySelectorAll('[data-gallery-move]').forEach(button=>button.onclick=()=>{const visible=state.items.filter(entry=>!entry.removed),from=visible.indexOf(item),to=from+Number(button.dataset.galleryMove);if(to<0||to>=visible.length)return;const other=visible[to],a=state.items.indexOf(item),b=state.items.indexOf(other);[state.items[a],state.items[b]]=[state.items[b],state.items[a]];render()})})};
+    input.onchange=()=>{[...input.files].forEach((file,index)=>state.items.push({key:`new-${Date.now()}-${index}`,id:null,url:URL.createObjectURL(file),file,primary:!state.items.some(item=>!item.removed&&item.primary),removed:false}));input.value='';render()};
+    render();
+  }
+
+  async function syncProductImages(productId, {primaryUrl = null} = {}) {
+    const form=document.querySelector('#product-form'),state=form?.__productGallery;
+    if (!form || !state || !state.available || !productId) return;
+    if (primaryUrl && !state.items.some(item=>!item.removed&&item.url===primaryUrl)) {
+      state.items.forEach(item=>item.primary=false);
+      state.items.unshift({key:`saved-${Date.now()}`,id:null,url:primaryUrl,file:null,primary:true,removed:false});
+    }
+    const visible=state.items.filter(item=>!item.removed);
+    if (visible.length&&!visible.some(item=>item.primary))visible[0].primary=true;
+    await Promise.all([...state.removed].map(id=>api().request(`/rest/v1/product_images?id=eq.${id}`,{method:'DELETE',headers:{Prefer:'return=minimal'}})));
+    const persisted=visible.filter(item=>item.id);
+    await Promise.all(persisted.map(item=>api().request(`/rest/v1/product_images?id=eq.${item.id}`,{method:'PATCH',body:{is_primary:false},headers:{Prefer:'return=minimal'}})));
+    for (let index=0;index<visible.length;index+=1) {
+      const item=visible[index];
+      if (item.file) item.url=await api().uploadImage(item.file,'products');
+      const payload={product_id:Number(productId),image_url:item.url,alt_text:String(form.name?.value||''),is_primary:Boolean(item.primary),sort_order:index};
+      if (item.id) await api().request(`/rest/v1/product_images?id=eq.${item.id}`,{method:'PATCH',body:payload,headers:{Prefer:'return=minimal'}});
+      else await api().request('/rest/v1/product_images',{method:'POST',body:payload,headers:{Prefer:'return=minimal'}});
+    }
+    const primary=visible.find(item=>item.primary)||visible[0];
+    if (primary?.url !== undefined) await api().request(`/rest/v1/products?id=eq.${productId}`,{method:'PATCH',body:{image_url:primary?.url||null},headers:{Prefer:'return=minimal'}});
+  }
+
+  function productStudio(form, values = {}) {
+    if (form.dataset.studioEnhanced) return;
+    form.dataset.studioEnhanced='true';
+    form.querySelector('[name="subcategory"]')?.closest('label')?.querySelector('span')?.replaceChildren('Modelo / subcategoria');
+    form.querySelector('.dialog-head')?.insertAdjacentHTML('afterend','<nav class="product-editor-nav"><button type="button" data-editor-target="name" class="active">Informações básicas</button><button type="button" data-editor-target="image_file">Imagens</button><button type="button" data-editor-target="price">Preço e estoque</button><button type="button" data-editor-target="description">Descrição</button></nav>');
+    form.querySelector('.form-error')?.insertAdjacentHTML('beforebegin', `<section class="product-live-studio"><div class="studio-preview"><div class="studio-head"><div><strong>Preview no aplicativo</strong><small>Visualização com os dados preenchidos</small></div><div><button type="button" data-studio-device="mobile" class="active">Mobile</button><button type="button" data-studio-device="tablet">Tablet</button><button type="button" data-studio-device="desktop">Desktop</button></div></div><div class="studio-stage mobile"><article><div class="studio-image" data-studio-image><span>Sem imagem</span><em data-studio-discount></em></div><p data-studio-name>Nome do produto</p><del data-studio-old></del><strong data-studio-price>R$ 0,00</strong><small data-studio-stock></small></article></div></div><aside class="studio-price"><span>Estoque e preço</span><div><small>Preço normal</small><strong data-price-normal>R$ 0,00</strong></div><div><small>Preço promocional</small><strong data-price-current>R$ 0,00</strong></div><section><small>Desconto</small><strong data-price-discount>0%</strong><em data-price-economy>Sem economia</em></section><div><small>Quantidade em estoque</small><strong data-price-stock>0</strong></div><p data-price-status>Sem estoque</p></aside></section>`);
+    const studio=form.querySelector('.product-live-studio'),stage=studio.querySelector('.studio-stage'),image=studio.querySelector('[data-studio-image]'),field=name=>form.querySelector(`[name="${name}"]`);
+    let objectUrl='';
+    const update=()=>{const current=Number(field('price')?.value||0),normal=Number(field('old_price')?.value||current),stock=Number(field('stock')?.value||0),minimum=Number(field('stock_min')?.value||0),discount=normal>current&&current>=0?Math.round((1-current/normal)*100):0,economy=Math.max(0,normal-current);studio.querySelector('[data-studio-name]').textContent=field('name')?.value.trim()||'Nome do produto';studio.querySelector('[data-studio-price]').textContent=api().money(current);studio.querySelector('[data-studio-old]').textContent=normal>current?api().money(normal):'';studio.querySelector('[data-studio-discount]').textContent=discount?`-${discount}%`:'';studio.querySelector('[data-studio-stock]').textContent=stock>0?'● Em estoque':'● Esgotado';studio.querySelector('[data-price-normal]').textContent=api().money(normal);studio.querySelector('[data-price-current]').textContent=api().money(current);studio.querySelector('[data-price-discount]').textContent=discount?`-${discount}%`:'0%';studio.querySelector('[data-price-economy]').textContent=economy?`Economia de ${api().money(economy)}`:'Sem economia';studio.querySelector('[data-price-stock]').textContent=String(stock);const status=stock===0?'Esgotado':stock===1?'Última unidade':stock<=minimum?'Estoque baixo':'Em estoque';studio.querySelector('[data-price-status]').textContent=status;studio.querySelector('[data-price-status]').className=stock===0?'critical':stock<=minimum?'warning':'healthy'};
+    const setImage=src=>{image.style.backgroundImage=src?`url("${String(src).replace(/"/g,'%22')}")`:'';image.classList.toggle('has-image',Boolean(src))};
+    setImage(assetUrl(values.image_url||field('image_url')?.value));
+    form.querySelector('[name="image_url"]')?.addEventListener('input',event=>setImage(assetUrl(event.target.value)));
+    form.querySelector('[name="image_file"]')?.addEventListener('change',event=>{const file=event.target.files?.[0];if(!file)return;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(file);setImage(objectUrl)});
+    ['name','price','old_price','stock','stock_min'].forEach(name=>field(name)?.addEventListener('input',update));
+    studio.querySelectorAll('[data-studio-device]').forEach(button=>button.onclick=()=>{studio.querySelectorAll('[data-studio-device]').forEach(item=>item.classList.toggle('active',item===button));stage.className=`studio-stage ${button.dataset.studioDevice}`});
+    form.querySelectorAll('[data-editor-target]').forEach(button=>button.onclick=()=>{form.querySelectorAll('[data-editor-target]').forEach(item=>item.classList.toggle('active',item===button));form.querySelector(`[name="${button.dataset.editorTarget}"]`)?.closest('label,section')?.scrollIntoView({behavior:'smooth',block:'center'})});
+    update();
   }
 
   function enhanceVariants(dialog) {
@@ -283,7 +348,7 @@
     submit?.addEventListener('click',()=>{form.publication_status.value=form.active.checked?'published':'inactive'});
     const promo=form.querySelector('[name="has_promotion"]'),promoFields=form.querySelector('.promotion-fields'),price=form.querySelector('[name="price"]'),oldPrice=form.querySelector('[name="old_price"]'),discount=form.querySelector('[name="discount"]'),economy=form.querySelector('.promotion-economy');
     const updatePromo=()=>{const enabled=promo.checked;promoFields.hidden=!enabled;if(discount)discount.readOnly=true;const normal=Number(oldPrice?.value||0),current=Number(price?.value||0),percent=enabled&&normal>current&&current>=0?Math.round((1-current/normal)*100):0;if(discount)discount.value=percent;economy.textContent=percent?`Economia para o cliente: ${api().money(normal-current)} (${percent}%)`:'Informe um preço promocional menor que o normal.';};
-    [promo,price,oldPrice].forEach(node=>node?.addEventListener('input',updatePromo));updatePromo();imageWorkshop(form,values);enhanceVariants(dialog);
+    [promo,price,oldPrice].forEach(node=>node?.addEventListener('input',updatePromo));updatePromo();imageWorkshop(form,values);await productGallery(form,values);productStudio(form,values);enhanceVariants(dialog);
   }
 
   async function enhanceOfferDialog(dialog) {
@@ -378,5 +443,5 @@
   document.addEventListener('keydown',event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();if(api())openSearch()}if(event.key==='Escape'&&document.querySelector('#admin-global-search[open]'))document.querySelector('#admin-global-search').close()});
   new MutationObserver(observe).observe(document.body,{childList:true,subtree:true});
   const ready=setInterval(()=>{if(api()){clearInterval(ready);observe()}},50);
-  window.BLACKOUT_ADMIN_FINAL={loadQuality,bindShell,openSearch,decorateDashboard};
+  window.BLACKOUT_ADMIN_FINAL={loadQuality,bindShell,openSearch,decorateDashboard,syncProductImages};
 })();

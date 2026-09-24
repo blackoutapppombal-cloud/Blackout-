@@ -13,9 +13,9 @@
     ["customers", "♙", "Clientes"],
     ["services", "⚙", "Serviços"],
     ["offers", "％", "Ofertas"],
+    ["banners", "▧", "Banners / Hero"],
     ["coupons", "◇", "Cupons"],
     ["payment-methods", "◈", "Pagamentos"],
-    ["banners", "▧", "Banners"],
     ["quality", "✓", "Verificação da loja"],
     ["settings", "⚙", "Configurações"],
   ];

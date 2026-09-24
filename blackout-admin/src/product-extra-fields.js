@@ -24,7 +24,7 @@
     const category = form.querySelector('[name="category"]')?.closest('label');
     if (!category) return;
     category.insertAdjacentHTML('afterend', `
-      <label class="field"><span>Subcategoria</span><input name="subcategory" value="${escapeHtml(values?.subcategory || '')}" placeholder="Ex.: Controles"></label>
+      <label class="field"><span>Modelo / subcategoria</span><input name="subcategory" value="${escapeHtml(values?.subcategory || '')}" placeholder="Ex.: Slim, Pro ou Controles"></label>
       <label class="field"><span>Condição</span><select name="condition"><option value="Novo" ${!values?.condition || values.condition === 'Novo' ? 'selected' : ''}>Novo</option><option value="Seminovo" ${values?.condition === 'Seminovo' ? 'selected' : ''}>Seminovo</option><option value="Usado" ${values?.condition === 'Usado' ? 'selected' : ''}>Usado</option></select></label>
       <label class="field"><span>Status comercial</span><select name="product_status"><option value="Em estoque" ${!values?.product_status || values.product_status === 'Em estoque' ? 'selected' : ''}>Em estoque</option><option value="Esgotado" ${values?.product_status === 'Esgotado' ? 'selected' : ''}>Esgotado</option><option value="Sob consulta" ${values?.product_status === 'Sob consulta' ? 'selected' : ''}>Sob consulta</option></select></label>
       <label class="field wide"><span>Termos de busca</span><input name="search_terms" value="${escapeHtml(values?.search_terms || '')}" placeholder="DualSense, Controle PS5, Controle Sony"></label>`);
