@@ -94,12 +94,16 @@ As RPCs `admin_store_quality` e `admin_global_search` retornaram HTTP 401 quando
 - Site público aberto em navegador: marca e catálogo renderizados, sem botão ou acesso administrativo visível.
 - Data API: novos campos/tabelas disponíveis; RPCs administrativas bloqueadas para anônimo.
 - Nenhuma chave privilegiada encontrada no frontend.
+- Produção Vercel publicada em `https://blackout-admin-mu.vercel.app`.
+- Rotas `/login`, `/dashboard`, `/produtos`, `/categorias`, `/estoque`, `/servicos`, `/ofertas`, `/banners`, `/cupons` e `/configuracoes` validadas com HTTP 200 em produção.
+- `PUBLIC_SITE_URL` configurada temporariamente para os assets públicos do repositório enquanto o site público não possui domínio Vercel.
 
-## 11. Pendências reais para publicação
+## 11. Pendências após a publicação
 
-1. Na Vercel, importar o repositório com `blackout-admin` como Root Directory e cadastrar as três variáveis do `.env.example`.
-2. Adicionar a futura URL da Vercel à lista de Redirect URLs do Supabase Auth.
-3. Confirmar ao menos um registro válido em `admin_users` e fazer o teste ponta a ponta autenticado com esse usuário (CRUD, upload, logout e persistência). Esse teste não foi executado porque nenhuma credencial administrativa foi solicitada ou armazenada.
-4. Rodar os Advisors de segurança e desempenho do Supabase depois da publicação.
+1. Adicionar `https://blackout-admin-mu.vercel.app` à lista de Redirect URLs do Supabase Auth para recuperação de senha e convites.
+2. Confirmar ao menos um registro válido em `admin_users` e fazer o teste ponta a ponta autenticado com esse usuário (CRUD, upload, logout e persistência). Esse teste não foi executado porque nenhuma credencial administrativa foi solicitada ou armazenada.
+3. Conceder à conta Vercel `ogaitjunior-sudo` acesso de escrita ao repositório `blackoutapppombal-cloud/Blackout-` para habilitar deploy automático a cada push. A publicação manual pela CLI já funciona.
+4. Trocar `PUBLIC_SITE_URL` pelo domínio definitivo do site público quando ele for publicado.
+5. Rodar os Advisors de segurança e desempenho do Supabase.
 
-O projeto está tecnicamente preparado para importação na Vercel; resta somente configurar o ambiente e a URL final da implantação.
+O painel está publicado e operacional na Vercel. As pendências acima não impedem o acesso ao login nem o carregamento das rotas administrativas.
