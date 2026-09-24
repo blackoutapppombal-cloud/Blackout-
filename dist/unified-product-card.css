@@ -1,0 +1,8 @@
+.catalog-products .unified-product-card{border-color:#1d4057!important;border-radius:22px!important;background:linear-gradient(145deg,#0b1720,#060c11)!important;box-shadow:0 15px 45px rgba(0,0,0,.22)!important}
+.catalog-products .unified-product-card .product-visual{border-bottom:1px solid #193548;background:linear-gradient(160deg,color-mix(in srgb,var(--product-glow) 72%,#08111a),#071018 70%)}
+.catalog-products .unified-product-card .product-visual.has-image img{width:100%;height:100%;object-fit:cover;object-position:center}
+.catalog-products .unified-product-card .product-info{background:linear-gradient(180deg,rgba(10,21,29,.96),#071018)}
+.catalog-products .unified-product-card .unified-card-option{display:block;min-height:16px;margin:-5px 0 5px;color:#31cfff;font-size:11px;font-weight:800;letter-spacing:.3px}
+.catalog-products .unified-product-card .card-actions .buy{display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}
+.catalog-products .unified-product-card .stock-inline{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:720px){.catalog-products .unified-product-card .product-visual.has-image img{object-position:center}.catalog-products .unified-product-card .unified-card-option{font-size:10px}}

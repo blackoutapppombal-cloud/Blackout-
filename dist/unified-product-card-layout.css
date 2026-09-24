@@ -1,0 +1,14 @@
+.catalog-products:not(.list) .unified-product-card .product-visual{
+  flex-basis:50%!important;
+  max-height:50%!important;
+}
+.catalog-products:not(.list) .unified-product-card .product-info{
+  flex-basis:50%!important;
+  padding-top:13px;
+  padding-bottom:14px;
+}
+.catalog-products:not(.list) .unified-product-card .unified-card-option{display:none}
+.catalog-products:not(.list) .unified-product-card .product-info h3{margin-top:4px;margin-bottom:2px}
+.catalog-products:not(.list) .unified-product-card .product-meta{margin-bottom:5px}
+.catalog-products:not(.list) .unified-product-card .stock-inline{margin-top:3px}
+@media(max-width:720px){.catalog-products:not(.list) .unified-product-card .product-info{padding:12px 18px 14px}}

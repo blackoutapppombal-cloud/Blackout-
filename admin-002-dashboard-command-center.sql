@@ -2,7 +2,7 @@ begin;
 
 drop function if exists public.admin_dashboard_metrics();
 
-create function public.admin_dashboard_metrics(period_key text default 'today')
+create or replace function public.admin_dashboard_metrics(period_key text default 'today')
 returns jsonb
 language plpgsql
 stable
@@ -95,8 +95,8 @@ begin
   select coalesce(jsonb_agg(to_jsonb(recent) order by recent.created_at desc), '[]'::jsonb)
   into recent_orders
   from (
-    select id, customer_name, total, status, created_at, null::text as payment_method
-    from public.orders
+    select id, customer_name, total, status, created_at, to_jsonb(order_row)->>'payment_method' as payment_method
+    from public.orders order_row
     where created_at >= period_start and created_at <= now()
     order by created_at desc
     limit 5

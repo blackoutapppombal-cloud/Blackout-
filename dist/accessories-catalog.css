@@ -1,0 +1,36 @@
+/* Regra geral do catálogo: qualquer arte enviada ocupa todo o quadro do card. */
+.catalog-products .product-visual.has-image{
+  overflow:hidden;
+}
+
+.catalog-products .product-visual.has-image img{
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  min-width:100%!important;
+  min-height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  background:#05090e;
+}
+
+/* Regra geral da página do produto: a arte preenche toda a área principal. */
+.detail-art.has-image{
+  overflow:hidden;
+  padding:0!important;
+  background:#05090e;
+}
+
+.detail-art.has-image img{
+  display:block;
+  width:100%!important;
+  height:100%!important;
+  min-width:100%!important;
+  min-height:100%!important;
+  margin:0!important;
+  padding:0!important;
+  object-fit:cover!important;
+  object-position:center!important;
+}

@@ -36,9 +36,9 @@ drop policy if exists "Public can read active products" on public.products;
 create policy "Public can read active products" on public.products for select using (active = true);
 
 drop policy if exists "Public can create orders" on public.orders;
-create policy "Public can create orders" on public.orders for insert with check (status = 'recebido');
+-- Storefront order creation is handled by commerce-001-secure-checkout.sql RPCs.
 
 grant usage on schema public to anon, authenticated;
 grant select on public.products to anon, authenticated;
-grant insert on public.orders to anon, authenticated;
-grant usage, select on sequence public.orders_id_seq to anon, authenticated;
+-- Direct order INSERT is intentionally not granted to storefront roles.
+-- The checkout RPC owns order identifiers.

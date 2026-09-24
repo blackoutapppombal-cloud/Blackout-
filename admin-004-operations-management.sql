@@ -79,8 +79,10 @@ on conflict (name) do nothing;
 insert into public.store_settings
   (id, store_name, support_phone, whatsapp, address, business_hours)
 values
-  (1, 'BLACKOUT Infor Games', '(75) 9 8312-1210', '5575983121210', 'Rua Nossa Senhora da Saúde, 32, Centro, Ribeirão do Pombal - BA', 'Segunda a sábado, das 8h às 18h')
-on conflict (id) do nothing;
+  (1, 'BLACKOUT Infor Games', '(75) 9 8312-1210', '5575983121210', 'Rua Nossa Senhora da Saúde, 432, Centro, Ribeira do Pombal - BA', 'Segunda a sábado, das 8h às 18h')
+on conflict (id) do update
+set address = replace(store_settings.address, 'Ribeirão do Pombal', 'Ribeira do Pombal')
+where store_settings.address like '%Ribeirão do Pombal%';
 
 create or replace function public.set_updated_at()
 returns trigger

@@ -1,0 +1,57 @@
+/* Consoles mantêm seus dados especiais dentro do mesmo tamanho dos demais cards. */
+.consoles-page .console-card{
+  width:100%;
+  height:clamp(560px,56vw,665px);
+}
+.consoles-page .console-media{
+  flex:0 0 50%;
+  height:auto;
+  aspect-ratio:auto;
+}
+.consoles-page .console-copy{
+  min-height:0;
+  padding:12px 14px 14px;
+  overflow:hidden;
+}
+.consoles-page .console-copy h3{
+  overflow:hidden;
+  font-size:clamp(22px,2.2vw,29px);
+  line-height:1.05;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+}
+.consoles-page .console-copy>p{
+  min-height:0;
+  max-height:2.7em;
+  margin:4px 0 7px;
+  overflow:hidden;
+  line-height:1.35;
+}
+.consoles-page .console-variants{margin:0 0 7px}
+.consoles-page .console-variants>span{margin-bottom:4px;font-size:10px}
+.consoles-page .console-variant{min-height:34px;padding:5px 10px;font-size:11px}
+.consoles-page .console-included{margin:0 0 7px;padding:6px;gap:4px}
+.consoles-page .console-included>strong{font-size:8px}
+.consoles-page .console-included span{font-size:8px}
+.consoles-page .console-commerce{margin-top:0;padding:0 0 7px}
+.consoles-page .console-price{font-size:clamp(27px,2.8vw,36px)}
+.consoles-page .console-stock{margin-top:3px}
+.consoles-page .console-features{margin:0 -14px 7px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.consoles-page .console-features span{min-height:40px;padding:5px 3px;border-right:1px solid #143546;font-size:7.5px}
+.consoles-page .console-features span:nth-child(even){border-right:1px solid #143546}
+.consoles-page .console-features span:last-child{border-right:0}
+.consoles-page .console-features i{margin-bottom:2px}
+.consoles-page .console-add{min-height:50px!important;margin-top:auto}
+
+@media(max-width:720px){
+  .consoles-page .console-card{max-width:581px;height:clamp(500px,120vw,665px)}
+  .consoles-page .console-media{flex-basis:40%}
+  .consoles-page .console-copy{padding:10px 12px 12px}
+  .consoles-page .console-copy h3{font-size:24px}
+  .consoles-page .console-copy>p{max-height:1.35em;white-space:nowrap;text-overflow:ellipsis}
+  .consoles-page .console-included{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .consoles-page .console-included>strong{display:none}
+  .consoles-page .console-features{margin-inline:-12px}
+}
+
+@media(max-width:360px){.consoles-page .console-card{height:500px}}

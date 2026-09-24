@@ -1,0 +1,19 @@
+node_modules/
+.codex-verification/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+
+# Android/Gradle generated files
+android/.gradle/
+android/**/build/
+android/local.properties
+
+# Logs and operating-system files
+*.log
+.DS_Store
+Thumbs.db

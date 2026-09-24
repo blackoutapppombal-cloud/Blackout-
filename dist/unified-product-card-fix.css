@@ -1,0 +1,17 @@
+.catalog-products:not(.list) .unified-product-card .product-visual{
+  flex:0 0 58%!important;
+  min-height:0!important;
+  max-height:58%!important;
+  overflow:hidden!important;
+  aspect-ratio:auto!important;
+}
+.catalog-products:not(.list) .unified-product-card .product-visual img{
+  min-width:100%;
+  min-height:100%;
+  object-fit:cover!important;
+}
+.catalog-products:not(.list) .unified-product-card .product-info{
+  flex:1 1 42%;
+  min-height:0;
+  overflow:hidden;
+}

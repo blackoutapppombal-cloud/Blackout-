@@ -150,6 +150,7 @@
         <label class="field"><span>Estoque atual</span><input name="stock" type="number" min="0" step="1" value="${product?.stock??0}" required></label>
         <label class="field"><span>Estoque mínimo</span><input name="stock_min" type="number" min="0" step="1" value="${product?.stock_min??3}" required></label>
         <label class="field wide"><span>Imagem (URL ou caminho em assets)</span><input name="image_url" value="${escapeHtml(product?.image_url||'')}" placeholder="./assets/produto.png"></label>
+        <label class="field wide"><span>Enviar imagem do dispositivo (JPG, PNG ou WebP; até 5 MB)</span><input name="image_file" type="file" accept="image/jpeg,image/png,image/webp"></label>
         <label class="field"><span>Ícone</span><input name="icon" value="${escapeHtml(product?.icon||'🎮')}" maxlength="8"></label>
         <label class="field"><span>Cor de destaque</span><input name="glow" type="color" value="${escapeHtml(product?.glow||'#ff641e')}"></label>
         <label class="field wide"><span>Descrição</span><textarea name="description" rows="4">${escapeHtml(product?.description||'')}</textarea></label>
@@ -181,13 +182,15 @@
     };
     button.disabled = true; button.textContent = 'Salvando…'; errorNode.classList.remove('show');
     try {
+      const imageFile = values.get('image_file');
+      if (imageFile && imageFile.size) payload.image_url = await api().uploadImage(imageFile, 'products');
       const path = product ? `/rest/v1/products?id=eq.${product.id}` : '/rest/v1/products';
       await api().request(path, {method:product?'PATCH':'POST', body:payload, headers:{Prefer:'return=minimal'}});
       close();
       await loadProducts(true);
       api().toast(product ? 'Produto atualizado' : 'Produto cadastrado');
     } catch (error) {
-      errorNode.textContent = error.status === 409 ? 'Já existe um registro com esses dados.' : 'Não foi possível salvar. Confira os campos e tente novamente.';
+      errorNode.textContent = error.status === 409 ? 'Já existe um registro com esses dados.' : (error.message && error.message !== 'request_failed' ? error.message : 'Não foi possível salvar. Confira os campos e tente novamente.');
       errorNode.classList.add('show'); button.disabled = false; button.textContent = product ? 'Salvar alterações' : 'Cadastrar produto';
     }
   }

@@ -5,20 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#05080c" />
   <meta name="description" content="BLACKOUT INFOR GAMES — jogos, acessórios, consoles e serviços gamer." />
-  <title>BLACKOUT INFOR GAMES</title>
+  <title>BLACKOUT</title>
+  <meta name="application-name" content="BLACKOUT" />
+  <meta name="apple-mobile-web-app-title" content="BLACKOUT" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="./manifest.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2305080c'/%3E%3Cpath d='M32 12v18' stroke='%23ff5a14' stroke-width='7' stroke-linecap='round'/%3E%3Cpath d='M20 20a17 17 0 1 0 24 0' fill='none' stroke='%2300bfff' stroke-width='7' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <link rel="stylesheet" href="./styles.css?v=26" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/icons/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/icons/favicon-16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="./styles.css?v=62" />
+  <link rel="stylesheet" href="./dualsense-catalog.css?v=1" />
+  <link rel="stylesheet" href="./console-catalog.css?v=3" />
+  <link rel="stylesheet" href="./console-hero-oficial.css?v=1" />
+  <link rel="stylesheet" href="./uniform-product-cards.css?v=1" />
+  <link rel="stylesheet" href="./uniform-console-cards.css?v=1" />
+  <link rel="stylesheet" href="./uniform-console-grid.css?v=1" />
+  <link rel="stylesheet" href="./unified-product-card.css?v=1" />
+  <link rel="stylesheet" href="./unified-product-card-fix.css?v=1" />
+  <link rel="stylesheet" href="./unified-product-card-layout.css?v=1" />
+  <link rel="stylesheet" href="./unified-product-variants.css?v=1" />
+  <link rel="stylesheet" href="./accessories-catalog.css?v=4" />
+  <link rel="stylesheet" href="./mobile-home-polish.css?v=3" />
+  <link rel="stylesheet" href="./mobile-catalog-controls.css?v=1" />
+  <link rel="stylesheet" href="./app-mode-responsive.css?v=10" />
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
       <button class="icon-btn menu-lines" data-action="menu" aria-label="Abrir menu"><span></span><span></span><span></span></button>
-      <button class="brand" data-route="home" aria-label="Ir para início">
-        <span class="brand-main">BLAC<span class="power">◉</span>OUT</span>
-        <span class="brand-sub">INFOR GAMES</span>
+      <button class="brand brand-wordmark" data-route="home" aria-label="BLACKOUT Infor Games — ir para o início">
+        <strong>BLACKOUT</strong>
+        <span>INFOR GAMES</span>
       </button>
       <div class="top-actions">
         <button class="icon-btn" data-action="search" aria-label="Pesquisar"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m16 16 5 5"></path></svg></button>
@@ -27,32 +48,32 @@
       </div>
     </header>
     <p class="tagline">MAIS QUE JOGOS, UMA PAIXÃO</p>
-
     <main id="app" tabindex="-1"></main>
-
-
-    <nav class="bottom-nav" aria-label="Navegação principal">
-      <button data-route="home" class="active"><span>⌂</span>Início</button>
-      <button data-route="catalog"><span>▦</span>Categorias</button>
-      <button data-route="offers"><span>◇</span>Ofertas</button>
-      <button data-route="orders"><span>⬡</span>Pedidos</button>
-      <button data-route="profile"><span>♙</span>Perfil</button>
-    </nav>
   </div>
-
   <aside id="drawer" class="drawer" aria-hidden="true">
     <div class="drawer-head"><span>BLACKOUT</span><button data-action="close-menu" aria-label="Fechar">×</button></div>
     <button data-route="home">Início</button><button data-route="catalog">Catálogo</button><button data-route="services">Serviços</button><button data-route="offers">Ofertas</button><button data-route="favorites">Favoritos</button><button data-route="admin">Painel administrativo</button>
   </aside>
   <div id="backdrop" class="backdrop" data-action="close-menu"></div>
-
   <section id="search-panel" class="search-panel" aria-hidden="true">
-    <div class="search-box"><span>⌕</span><input id="global-search" placeholder="Buscar jogos, produtos e serviços" autocomplete="off"><button data-action="close-search">×</button></div>
+    <div class="search-box"><span>⌕</span><input id="global-search" type="search" inputmode="search" enterkeyhint="search" placeholder="Buscar jogos, produtos e serviços" autocomplete="off"><button data-action="close-search">×</button></div>
     <div id="search-results" class="search-results"></div>
   </section>
-
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <script src="./supabase-config.js"></script>
-  <script src="./app.js?v=16"></script>
+  <script src="./commerce.js?v=5"></script>
+  <script src="./app.js?v=54"></script>
+  <script src="./dualsense-catalog.js?v=2"></script>
+  <script src="./console-catalog.js?v=4"></script>
+  <script src="./accessories-catalog.js?v=3"></script>
+  <script src="./ps4-games-catalog.js?v=3"></script>
+  <script src="./ps5-games-catalog.js?v=1"></script>
+  <script src="./unified-product-card.js?v=1"></script>
+  <script src="./unified-product-variants.js?v=1"></script>
+  <script src="./commerce-ui.js?v=9"></script>
+  <script src="./mobile-catalog-controls.js?v=1"></script>
+  <script src="./mobile-native.js?v=2"></script>
+  <script src="./touch-feedback-v2.js?v=3"></script>
+  <script src="./app-mode-responsive.js?v=2"></script>
 </body>
 </html>
